@@ -20,13 +20,35 @@ function addTask(text, completed = false) {
 
     span.addEventListener("click", () => {
         span.classList.toggle("completed");
-        if (span.classList.contains("completed")) {
-            span.innerHTML = "✔️ " + text;
-        } else {
-            span.innerHTML = text;
-        }
         saveTasks();
     });
+
+    span.addEventListener("dblclick", () => {
+        const editInput = document.createElement("input");
+        editInput.type = "text";
+        editInput.value = span.textContent;
+
+        li.replaceChild(editInput, span);
+        editInput.focus();
+
+        function finishEdit() {
+            const newValue = editInput.value.trim();
+
+            if (newValue !== "") {
+            span.textContent = newValue;
+            }
+
+            li.replaceChild(span, editInput);
+            saveTasks(); 
+        }
+
+        editInput.addEventListener("blur", finishEdit);
+    
+        editInput.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") finishEdit();
+        });
+    });
+
 
     deleteBtn.addEventListener("click", () => {
         li.remove();
@@ -34,6 +56,8 @@ function addTask(text, completed = false) {
     });
 
     saveTasks();
+
+
 }
 
 form.addEventListener("submit", (e) => {

@@ -7,6 +7,11 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <div class="dark-mode-container">
+    <button id="dark-mode-toggle" class="button">🌙 Dark</button>
+  </div>
+
+
   <div class="todo-container">
     <div class="todo-container-h1-img h1 img">
         <h1>My To-Do List</h1>
@@ -18,7 +23,7 @@
       <button type="submit" class="button">Add</button>
     </form>
 
-    <div class="todo-filter">
+    <div class="todo-filter" id="todo-filter">
       <button type="button" id="filter-all" class="button">All</button>
       <button type="button" id="filter-active" class="button">Active</button>
       <button type="button" id="filter-completed" class="button">Completed</button>

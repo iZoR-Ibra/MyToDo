@@ -30,20 +30,28 @@ function addTask(text, completed = false, id = null) {
     listEl.appendChild(li);
     requestAnimationFrame(() => li.classList.add("fade-in"));
 
+    // COMPLETE TASK
     span.addEventListener("click", () => {
         span.classList.toggle("completed");
-        const taskId = li.dataset.id;
-
-        fetch(`http://localhost:3000/tasks/${taskId}`, {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ completed: span.classList.contains("completed") })
-            });
-
         saveTasks();
     });
 
-    // EDIT TASK FUNCTION
+    // span.addEventListener("click", () => {
+    //     span.classList.toggle("completed");
+    //     const taskId = li.dataset.id;
+
+    //     fetch(`http://localhost:3000/tasks/${taskId}`, {
+    //         method: "PATCH",
+    //         headers: { "Content-Type": "application/json" },
+    //         body: JSON.stringify({ completed: span.classList.contains("completed") })
+    //         });
+
+    //     saveTasks();
+    // });
+
+
+
+    // EDIT TASK
 
     editBtn.addEventListener("click", () => {
         const editInput = document.createElement("input");
@@ -56,20 +64,29 @@ function addTask(text, completed = false, id = null) {
 
         function finishEdit() {
             const newValue = editInput.value.trim();
-            const taskId = li.dataset.id;
-
             if (newValue !== "") {
-            span.textContent = newValue;
-
-            fetch(`http://localhost:3000/tasks/${taskId}`, {
-                method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ text: newValue })
-            });
+                span.textContent = newValue;
             }
-
             li.replaceChild(span, editInput);
+            saveTasks();
         }
+
+        // function finishEdit() {
+        //     const newValue = editInput.value.trim();
+        //     const taskId = li.dataset.id;
+
+        //     if (newValue !== "") {
+        //     span.textContent = newValue;
+
+        //     fetch(`http://localhost:3000/tasks/${taskId}`, {
+        //         method: "PATCH",
+        //         headers: { "Content-Type": "application/json" },
+        //         body: JSON.stringify({ text: newValue })
+        //     });
+        //     }
+
+        //     li.replaceChild(span, editInput);
+        // }
 
         editInput.addEventListener("blur", finishEdit);
         editInput.addEventListener("keydown", e => {
@@ -80,48 +97,63 @@ function addTask(text, completed = false, id = null) {
     // DELETE TASK FUNCTION
 
     deleteBtn.addEventListener("click", () => {
-        const taskId = li.dataset.id; 
-        if (taskId) {
-            fetch(`http://localhost:3000/tasks/${taskId}`, {
-            method: "DELETE"
-            })
-            .then(res => {
-            if (res.ok) {
-                li.classList.add("fade-out");
-                setTimeout(() => li.remove(), 300);
-            }
-            });
-        }
+        li.classList.add("fade-out");
+        setTimeout(() => li.remove(), 300);
+        saveTasks();
     });
+
+    // deleteBtn.addEventListener("click", () => {
+    //     const taskId = li.dataset.id; 
+    //     if (taskId) {
+    //         fetch(`http://localhost:3000/tasks/${taskId}`, {
+    //         method: "DELETE"
+    //         })
+    //         .then(res => {
+    //         if (res.ok) {
+    //             li.classList.add("fade-out");
+    //             setTimeout(() => li.remove(), 300);
+    //         }
+    //         });
+    //     }
+    // });
 
 
     
 
     saveTasks();
-
-
 }
 
+
+// ADD NEW TASK ON SUBMIT
 form.addEventListener("submit", (e) => {
-  e.preventDefault();
-  const task = input.value.trim();
-  if (task === "") return;
+    e.preventDefault();
+    const task = input.value.trim();
+    if (task === "") return;
 
-  fetch("http://localhost:3000/tasks", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ text: task, completed: false })
-  })
-  .then(res => res.json())
-  .then(newTask => {
-    addTask(newTask.text, newTask.completed, newTask.id);
-  });
-
-  input.value = "";
+    addTask(task);
+    input.value = "";
 });
 
+// form.addEventListener("submit", (e) => {
+//   e.preventDefault();
+//   const task = input.value.trim();
+//   if (task === "") return;
 
-// SAVE TASKS FUNCTION
+//   fetch("http://localhost:3000/tasks", {
+//     method: "POST",
+//     headers: { "Content-Type": "application/json" },
+//     body: JSON.stringify({ text: task, completed: false })
+//   })
+//   .then(res => res.json())
+//   .then(newTask => {
+//     addTask(newTask.text, newTask.completed, newTask.id);
+//   });
+
+//   input.value = "";
+// });
+
+
+// SAVE TASKS TO LOCALSTORAGE
 
 function saveTasks() {
     const tasks = [];
@@ -134,19 +166,31 @@ function saveTasks() {
     localStorage.setItem("tasks", JSON.stringify(tasks));
 }
 
-// LOAD TASKS FUNCTION
+// LOAD TASKS FROM LOCALSTORAGE
 
 function loadTasks() {
-  fetch("http://localhost:3000/tasks")
-    .then(response => response.json())
-    .then(tasks => {
-        tasks.forEach(task => {
-            addTask(task.text, task.completed, task.id); 
-        });
+    const saved = localStorage.getItem("tasks");
+    if (!saved) return;
+
+    const tasks = JSON.parse(saved);
+    tasks.forEach(task => {
+        addTask(task.text, task.completed);
     });
 }
 
-//FILTER TASKS DISPLAY FUNCTION
+// function loadTasks() {
+//   fetch("http://localhost:3000/tasks")
+//     .then(response => response.json())
+//     .then(tasks => {
+//         tasks.forEach(task => {
+//             addTask(task.text, task.completed, task.id); 
+//         });
+//     });
+// }
+
+
+
+//FILTER TASKS
 
 document.getElementById("filter-all").addEventListener("click", () => filterTasks("all"));
 document.getElementById("filter-active").addEventListener("click", () => filterTasks("active"));
@@ -172,7 +216,7 @@ function filterTasks(filter) {
   });
 }
 
-// FILTER BUTTONS COLOR STYLE WHEN CLICKED
+// FILTER BUTTON ACTIVE STYLE
 
 const filterBtns = document.getElementById("todo-filter");
 
@@ -186,8 +230,10 @@ filterBtns.addEventListener("click", (event) => {
   }
 });
 
-const darkModeToggle = document.getElementById("dark-mode-toggle");
 
+// DARK MODE
+
+const darkModeToggle = document.getElementById("dark-mode-toggle");
 darkModeToggle.addEventListener("click", () => {
   document.body.classList.toggle("dark-mode");
 
